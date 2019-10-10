@@ -47,7 +47,6 @@ export interface IViewEditorSqlRouteState {
   virtualization: RestDataService;
   viewDefinition: ViewDefinition;
   previewExpanded: boolean;
-  queryResults: QueryResults;
 }
 
 export const ViewEditorSqlPage: React.FunctionComponent = () => {
@@ -80,7 +79,7 @@ export const ViewEditorSqlPage: React.FunctionComponent = () => {
   const [previewExpanded, setPreviewExpanded] = React.useState(
     state.previewExpanded
   );
-  const [queryResults, setQueryResults] = React.useState(state.queryResults);
+  const [queryResults, setQueryResults] = React.useState([]);
   const { resource: virtualization } = useVirtualization(
     params.virtualizationId
   );
