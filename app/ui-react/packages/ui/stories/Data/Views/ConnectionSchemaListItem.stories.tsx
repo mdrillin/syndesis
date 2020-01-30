@@ -1,3 +1,5 @@
+import { action } from '@storybook/addon-actions';
+import { text } from '@storybook/addon-knobs';
 import { storiesOf } from '@storybook/react';
 import * as React from 'react';
 
@@ -17,6 +19,9 @@ stories.add('ACTIVE, not loading', () => (
     dvStatusTooltip={'The connection is active'}
     icon={<div />}
     loading={false}
+    i18nRefresh={text('i18nRefresh', 'Refresh')}
+    i18nRefreshInProgress={text('i18nRefreshInProgress', 'Refresh in progress...')}
+    refreshConnectionSchema={action('refreshConnectionSchema')}
   />
 ));
 
@@ -29,6 +34,9 @@ stories.add('ACTIVE, loading', () => (
     dvStatusTooltip={'The connection is active'}
     icon={<div />}
     loading={true}
+    i18nRefresh={text('i18nRefresh', 'Refresh')}
+    i18nRefreshInProgress={text('i18nRefreshInProgress', 'Refresh in progress...')}
+    refreshConnectionSchema={action('refreshConnectionSchema')}
   />
 ));
 
@@ -41,6 +49,9 @@ stories.add('INACTIVE, loading', () => (
     dvStatusTooltip={'The connection is inactive'}
     icon={<div />}
     loading={true}
+    i18nRefresh={text('i18nRefresh', 'Refresh')}
+    i18nRefreshInProgress={text('i18nRefreshInProgress', 'Refresh in progress...')}
+    refreshConnectionSchema={action('refreshConnectionSchema')}
   />
 ));
 
@@ -53,5 +64,8 @@ stories.add('FAILED, not loading', () => (
     dvStatusTooltip={'The server exception is displayed here'}
     icon={<div />}
     loading={false}
+    i18nRefresh={text('i18nRefresh', 'Refresh')}
+    i18nRefreshInProgress={text('i18nRefreshInProgress', 'Refresh in progress...')}
+    refreshConnectionSchema={action('refreshConnectionSchema')}
   />
 ));

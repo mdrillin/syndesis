@@ -1,4 +1,4 @@
-import { useVirtualizationConnectionSchema } from '@syndesis/api';
+import { useVirtualizationConnectionSchema, useVirtualizationHelpers } from '@syndesis/api';
 import {
   Connection,
   SchemaNode,
@@ -14,6 +14,7 @@ import {
 import { WithLoader } from '@syndesis/utils';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
+import { UIContext } from '../../../app';
 import { ApiError, EntityIcon } from '../../../shared';
 import resolvers from '../../resolvers';
 import {
@@ -69,6 +70,11 @@ export interface IConnectionSchemaContentProps {
 export const ConnectionSchemaContent: React.FunctionComponent<IConnectionSchemaContentProps> = props => {
   const { t } = useTranslation(['data']);
 
+  /**
+   * Context that broadcasts global notifications.
+   */
+  const { pushNotification } = React.useContext(UIContext);
+
   const handleSourceSelectionChange = async (
     connectionName: string,
     name: string,
@@ -113,12 +119,36 @@ export const ConnectionSchemaContent: React.FunctionComponent<IConnectionSchemaC
     error,
   } = useVirtualizationConnectionSchema();
 
+  const {
+    refreshConnectionSchema,
+  } = useVirtualizationHelpers();
+
   // Root nodes of the response contain the connection names
   const sortedConns = getSortedConnections(
     props.connections,
     props.dvSourceStatuses,
     true
   );
+
+  /**
+   * Callback that triggers refresh of the connection schema
+   * @param connectionName the name of the connection
+   */
+  const handleRefreshSchema = async (connectionName: string) => {
+    try {
+      await refreshConnectionSchema(connectionName);
+    } catch (error) {
+      const details = error.message ? error.message : '';
+      // inform user of error
+      pushNotification(
+        t('refreshConnectionSchemaFailed', {
+          details,
+          name: connectionName,
+        }),
+        'error'
+      );
+    }
+  };
 
   return (
     <ConnectionSchemaList
@@ -153,8 +183,11 @@ export const ConnectionSchemaContent: React.FunctionComponent<IConnectionSchemaC
                     ? isConnectionSelected(c.name)
                     : false
                 }
+                i18nRefresh={t('Refresh')}
+                i18nRefreshInProgress={t('refreshInProgress')}
                 icon={<EntityIcon entity={c} alt={c.name} width={23} />}
                 loading={isDvConnectionLoading(c)}
+                refreshConnectionSchema={handleRefreshSchema}
                 // tslint:disable-next-line: no-shadowed-variable
                 children={srcInfos.map((info, index) => (
                   <SchemaNodeListItem

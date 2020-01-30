@@ -69,7 +69,7 @@ const noSourceTablesTestNotes =
 stories
 
   .add(
-    'no Source Tables',
+    'no Source Tables, not loading',
     withNotes(noSourceTablesTestNotes)(() => (
       <Router>
         <ViewInfoList
@@ -99,6 +99,9 @@ stories
           onClearFilters={action('onClearFilters')}
           onToggleCurrentSortDirection={action('onToggleCurrentSortDirection')}
           onUpdateCurrentSortType={action('onUpdateCurrentSortType')}
+          connectionLoading={false}
+          connectionName={'connName'}
+          connectionStatus={'ACTIVE'}
           i18nEmptyStateInfo={text(
             'i18nEmptyStateInfo',
             'There are no currently available Source Tables.'
@@ -110,6 +113,9 @@ stories
             'Filter by Name...'
           )}
           i18nResultsCount={text('i18nResultsCount', '0 Results')}
+          i18nRefresh={text('i18nRefresh', 'Refresh')}
+          i18nRefreshInProgress={text('i18nRefreshInProgress', 'Refresh in progress...')}
+          refreshConnectionSchema={action('refreshConnectionSchema')}
           children={[]}
         />
       </Router>
@@ -117,7 +123,61 @@ stories
   )
 
   .add(
-    'has Source Tables',
+    'no Source Tables, loading',
+    withNotes(noSourceTablesTestNotes)(() => (
+      <Router>
+        <ViewInfoList
+          activeFilters={[]}
+          currentFilterType={{
+            filterType: 'text',
+            id: 'name',
+            placeholder: text('placeholder', 'Filter by name'),
+            title: text('title', 'Name'),
+          }}
+          currentSortType={{
+            id: 'sort',
+            isNumeric: false,
+            title: 'Sort',
+          }}
+          currentValue={''}
+          filterTypes={[]}
+          isSortAscending={true}
+          resultsCount={0}
+          sortTypes={[]}
+          onUpdateCurrentValue={action('onUpdateCurrentValue')}
+          onValueKeyPress={action('onValueKeyPress')}
+          onFilterAdded={action('onFilterAdded')}
+          onSelectFilterType={action('onSelectFilterType')}
+          onFilterValueSelected={action('onFilterValueSelected')}
+          onRemoveFilter={action('onRemoveFilter')}
+          onClearFilters={action('onClearFilters')}
+          onToggleCurrentSortDirection={action('onToggleCurrentSortDirection')}
+          onUpdateCurrentSortType={action('onUpdateCurrentSortType')}
+          connectionLoading={true}
+          connectionName={'connName'}
+          connectionStatus={'ACTIVE'}
+          i18nEmptyStateInfo={text(
+            'i18nEmptyStateInfo',
+            'There are no currently available Source Tables.'
+          )}
+          i18nEmptyStateTitle={text('i18nEmptyStateTitle', emptyStateTitle)}
+          i18nName={text('i18nName', 'Name')}
+          i18nNameFilterPlaceholder={text(
+            'i18nNameFilterPlaceholder',
+            'Filter by Name...'
+          )}
+          i18nResultsCount={text('i18nResultsCount', '0 Results')}
+          i18nRefresh={text('i18nRefresh', 'Refresh')}
+          i18nRefreshInProgress={text('i18nRefreshInProgress', 'Refresh in progress...')}
+          refreshConnectionSchema={action('refreshConnectionSchema')}
+          children={[]}
+        />
+      </Router>
+    ))
+  )
+
+  .add(
+    'has Source Tables, not loading',
     withNotes(hasSourceTablesTestNotes)(() => (
       <Router>
         <ViewInfoList
@@ -147,6 +207,9 @@ stories
           onClearFilters={action('onClearFilters')}
           onToggleCurrentSortDirection={action('onToggleCurrentSortDirection')}
           onUpdateCurrentSortType={action('onUpdateCurrentSortType')}
+          connectionLoading={false}
+          connectionName={'connName'}
+          connectionStatus={'ACTIVE'}
           i18nEmptyStateInfo={text(
             'i18nEmptyStateInfo',
             'There are no currently available source tables.'
@@ -161,6 +224,66 @@ stories
             'i18nResultsCount',
             filteredAndSorted.length + ' Results'
           )}
+          i18nRefresh={text('i18nRefresh', 'Refresh')}
+          i18nRefreshInProgress={text('i18nRefreshInProgress', 'Refresh in progress...')}
+          refreshConnectionSchema={action('refreshConnectionSchema')}
+          children={tableItems}
+        />
+      </Router>
+    ))
+  )
+
+  .add(
+    'has Source Tables, loading',
+    withNotes(hasSourceTablesTestNotes)(() => (
+      <Router>
+        <ViewInfoList
+          activeFilters={[]}
+          currentFilterType={{
+            filterType: 'text',
+            id: 'name',
+            placeholder: text('placeholder', 'Filter by name'),
+            title: text('title', 'Name'),
+          }}
+          currentSortType={{
+            id: 'sort',
+            isNumeric: false,
+            title: 'Sort',
+          }}
+          currentValue={''}
+          filterTypes={[]}
+          isSortAscending={true}
+          resultsCount={0}
+          sortTypes={[]}
+          onUpdateCurrentValue={action('onUpdateCurrentValue')}
+          onValueKeyPress={action('onValueKeyPress')}
+          onFilterAdded={action('onFilterAdded')}
+          onSelectFilterType={action('onSelectFilterType')}
+          onFilterValueSelected={action('onFilterValueSelected')}
+          onRemoveFilter={action('onRemoveFilter')}
+          onClearFilters={action('onClearFilters')}
+          onToggleCurrentSortDirection={action('onToggleCurrentSortDirection')}
+          onUpdateCurrentSortType={action('onUpdateCurrentSortType')}
+          connectionLoading={true}
+          connectionName={'connName'}
+          connectionStatus={'ACTIVE'}
+          i18nEmptyStateInfo={text(
+            'i18nEmptyStateInfo',
+            'There are no currently available source tables.'
+          )}
+          i18nEmptyStateTitle={text('i18nEmptyStateTitle', emptyStateTitle)}
+          i18nName={text('i18nName', 'Name')}
+          i18nNameFilterPlaceholder={text(
+            'i18nNameFilterPlaceholder',
+            'Filter by Name...'
+          )}
+          i18nResultsCount={text(
+            'i18nResultsCount',
+            filteredAndSorted.length + ' Results'
+          )}
+          i18nRefresh={text('i18nRefresh', 'Refresh')}
+          i18nRefreshInProgress={text('i18nRefreshInProgress', 'Refresh in progress...')}
+          refreshConnectionSchema={action('refreshConnectionSchema')}
           children={tableItems}
         />
       </Router>

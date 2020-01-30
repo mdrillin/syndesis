@@ -238,6 +238,30 @@ export const useVirtualizationHelpers = () => {
   };
 
   /**
+   * Refresh the schema for the specified source.  This triggers the backend to start the refresh.
+   * @param connectionName the name of the connection to refresh
+   * @returns the `TeiidStatus` model object
+   * @throws an `Error` if there was a problem reverting the virtualization
+   */
+  const refreshConnectionSchema = async (
+    connectionName: string,
+  ): Promise<void> => {
+    const response = await callFetch({
+      headers: {},
+      method: 'POST',
+      url: `${
+        apiContext.dvApiUri
+      }metadata/refreshSchema/${connectionName}`,
+    });
+
+    if (!response.ok) {
+      throw new Error(response.statusText);
+    }
+
+    return Promise.resolve();
+  };
+
+  /**
    * Revert the virtualization with the specified name to the specified publish edition
    * @param virtualizationName the name of the virtualization being published
    * @param virtualizationRevision the revision to revert the working virtualization
@@ -562,6 +586,7 @@ export const useVirtualizationHelpers = () => {
     importVirtualization,
     publishVirtualization,
     queryVirtualization,
+    refreshConnectionSchema,
     revertVirtualization,
     saveViewDefinition,
     startVirtualization,

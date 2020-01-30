@@ -1,4 +1,4 @@
-import { useVirtualizationConnectionSchema } from '@syndesis/api';
+import { useVirtualizationConnectionSchema, useVirtualizationHelpers } from '@syndesis/api';
 import { SchemaNode, ViewInfo } from '@syndesis/models';
 import {
   IActiveFilter,
@@ -11,6 +11,7 @@ import {
 import { WithListViewToolbarHelpers, WithLoader } from '@syndesis/utils';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
+import { UIContext } from '../../../app';
 import i18n from '../../../i18n';
 import { ApiError } from '../../../shared';
 import { generateAllViewInfos } from './VirtualizationUtils';
@@ -59,7 +60,9 @@ const getSelectedViewName = (selectedViews: ViewInfo[]): string[] => {
 };
 
 export interface IViewInfosContentProps {
+  connectionLoading: boolean;
   connectionName: string;
+  connectionStatus: string;
   existingViewNames: string[];
   onViewSelected: (view: ViewInfo) => void;
   onViewDeselected: (viewName: string) => void;
@@ -88,6 +91,10 @@ export const ViewInfosContent: React.FunctionComponent<
   IViewInfosContentProps
 > = props => {
   const { t } = useTranslation(['data', 'shared']);
+  /**
+   * Context that broadcasts global notifications.
+   */
+  const { pushNotification } = React.useContext(UIContext);
 
   let displayedViews: ViewInfo[] = [];
   const selectedViewNames: string[] = getSelectedViewName(props.selectedViews);
@@ -101,6 +108,30 @@ export const ViewInfosContent: React.FunctionComponent<
       }
     } else {
       props.onViewDeselected(name);
+    }
+  };
+
+  const {
+    refreshConnectionSchema,
+  } = useVirtualizationHelpers();
+
+  /**
+   * Callback that triggers refresh of the connection schema
+   * @param connectionName the name of the connection
+   */
+  const handleRefreshSchema = async (connectionName: string) => {
+    try {
+      await refreshConnectionSchema(connectionName);
+    } catch (error) {
+      const details = error.message ? error.message : '';
+      // inform user of error
+      pushNotification(
+        t('refreshConnectionSchemaFailed', {
+          details,
+          name: connectionName,
+        }),
+        'error'
+      );
     }
   };
 
@@ -132,13 +163,19 @@ export const ViewInfosContent: React.FunctionComponent<
             sortTypes={sortTypes}
             resultsCount={filteredAndSorted.length}
             {...helpers}
+            connectionLoading={props.connectionLoading}
+            connectionName={props.connectionName}
+            connectionStatus={props.connectionStatus}
             i18nEmptyStateInfo={t('emptyStateInfoMessage')}
             i18nEmptyStateTitle={t('emptyStateTitle')}
             i18nName={t('shared:Name')}
             i18nNameFilterPlaceholder={t('shared:nameFilterPlaceholder')}
+            i18nRefresh={t('shared:Refresh')}
+            i18nRefreshInProgress={t('refreshInProgress')}
             i18nResultsCount={t('shared:resultsCount', {
               count: filteredAndSorted.length,
             })}
+            refreshConnectionSchema={handleRefreshSchema}
           >
             <WithLoader
               error={error !== false}
