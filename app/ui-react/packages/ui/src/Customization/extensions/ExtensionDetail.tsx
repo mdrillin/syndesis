@@ -1,4 +1,6 @@
 import {
+  Button,
+  ButtonVariant,
   Card,
   CardBody,
   Level,
@@ -8,13 +10,9 @@ import {
   TextContent,
   Title,
   TitleLevel,
+  Tooltip,
 } from '@patternfly/react-core';
 import * as H from '@syndesis/history';
-import {
-  Button,
-  OverlayTrigger,
-  Tooltip,
-} from 'patternfly-react';
 import * as React from 'react';
 import { ButtonLink } from '../../Layout';
 import { Container } from '../../Layout/Container';
@@ -133,22 +131,6 @@ export const ExtensionDetail: React.FunctionComponent<
     props.onDelete();
   };
 
-  const getDeleteTooltip = (): JSX.Element => {
-    return (
-      <Tooltip id="deleteTip">
-        {props.i18nDeleteTip ? props.i18nDeleteTip : props.i18nDelete}
-      </Tooltip>
-    );
-  };
-
-  const getUpdateTooltip = (): JSX.Element => {
-    return (
-      <Tooltip id="updateTip">
-        {props.i18nUpdateTip ? props.i18nUpdateTip : props.i18nUpdate}
-      </Tooltip>
-    );
-  };
-
   const showConfirmationDialog = () => {
     setShowDeleteDialog(true);
   };
@@ -181,7 +163,15 @@ export const ExtensionDetail: React.FunctionComponent<
             </Text>
           </TextContent>
           <LevelItem className="extension-detail__titleButtons">
-            <OverlayTrigger overlay={getUpdateTooltip()} placement="top">
+            <Tooltip
+              position={'top'}
+              enableFlip={true}
+              content={
+                <div id={'updateTip'}>
+                  {props.i18nUpdateTip ? props.i18nUpdateTip : props.i18nUpdate}
+                </div>
+              }
+            >
               <ButtonLink
                 data-testid={'extension-detail-update-button'}
                 href={props.linkUpdateExtension}
@@ -189,16 +179,25 @@ export const ExtensionDetail: React.FunctionComponent<
               >
                 {props.i18nUpdate}
               </ButtonLink>
-            </OverlayTrigger>
-            <OverlayTrigger overlay={getDeleteTooltip()} placement="top">
+            </Tooltip>
+            <Tooltip
+              position={'top'}
+              enableFlip={true}
+              content={
+                <div id={'deleteTip'}>
+                  {props.i18nDeleteTip ? props.i18nDeleteTip : props.i18nDelete}
+                </div>
+              }
+            >
               <Button
-                bsStyle="default"
-                disabled={props.extensionUses !== 0}
+                data-testid={'extension-detail-delete-button'}
+                isDisabled={props.extensionUses !== 0}
+                variant={ButtonVariant.secondary}
                 onClick={showConfirmationDialog}
               >
                 {props.i18nDelete}
               </Button>
-            </OverlayTrigger>
+            </Tooltip>
           </LevelItem>
         </Level>
       </PageSection>
