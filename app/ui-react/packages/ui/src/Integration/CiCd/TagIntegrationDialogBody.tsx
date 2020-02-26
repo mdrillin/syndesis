@@ -17,54 +17,41 @@ export interface ITagIntegrationDialogBodyProps {
   i18nEmptyStateButtonText: string;
 }
 
-export interface ITagIntegrationDialogBodyState {
-  items: ITagIntegrationEntry[];
-}
+export const TagIntegrationDialogBody: React.FunctionComponent<ITagIntegrationDialogBodyProps> = props => {
+  const [items, setItems] = React.useState(props.initialItems);
 
-export class TagIntegrationDialogBody extends React.Component<
-  ITagIntegrationDialogBodyProps,
-  ITagIntegrationDialogBodyState
-> {
-  constructor(props: ITagIntegrationDialogBodyProps) {
-    super(props);
-    this.state = {
-      items: this.props.initialItems,
-    };
-    this.handleChange = this.handleChange.bind(this);
-  }
-  public handleChange(name: string, selected: boolean) {
-    const items = this.state.items.map(item =>
+  const handleChange = (name: string, selected: boolean) => {
+    const newItems = items.map(item =>
       item.name === name ? { name, selected } : item
     );
-    this.setState({ items });
-    this.props.onChange(items, this.props.initialItems);
-  }
-  public render() {
-    return (
-      <>
-        {this.state.items.length > 0 && (
-          <>
-            <CiCdList>
-              {this.state.items.map((item, index) => (
-                <TagIntegrationListItem
-                  key={index}
-                  name={item.name}
-                  selected={item.selected}
-                  onChange={this.handleChange}
-                />
-              ))}
-            </CiCdList>
-          </>
-        )}
-        {this.state.items.length === 0 && (
-          <TagIntegrationDialogEmptyState
-            href={this.props.manageCiCdHref}
-            i18nTitle={this.props.i18nEmptyStateTitle}
-            i18nInfo={this.props.i18nEmptyStateInfo}
-            i18nGoToManageCiCdButtonText={this.props.i18nEmptyStateButtonText}
-          />
-        )}
-      </>
-    );
-  }
-}
+    setItems(newItems);
+    props.onChange(items, props.initialItems);
+  };
+
+  return (
+    <>
+      {items.length > 0 && (
+        <>
+          <CiCdList>
+            {items.map((item, index) => (
+              <TagIntegrationListItem
+                key={index}
+                name={item.name}
+                selected={item.selected}
+                onChange={handleChange}
+              />
+            ))}
+          </CiCdList>
+        </>
+      )}
+      {items.length === 0 && (
+        <TagIntegrationDialogEmptyState
+          href={props.manageCiCdHref}
+          i18nTitle={props.i18nEmptyStateTitle}
+          i18nInfo={props.i18nEmptyStateInfo}
+          i18nGoToManageCiCdButtonText={props.i18nEmptyStateButtonText}
+        />
+      )}
+    </>
+  );
+};
