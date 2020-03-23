@@ -1,6 +1,8 @@
 import {
   ApiContext,
+  MonacoEditorContext,
   ServerEventsContext,
+  WithMonacoEditor,
   WithServerEvents,
 } from '@syndesis/api';
 // Don't move this line, otherwise we anger the pf4
@@ -62,6 +64,7 @@ ReactDOM.render(
               >
                 <ApiContext.Consumer>
                   {({ apiUri, headers }) => (
+                    <>
                     <WithServerEvents apiUri={apiUri} headers={headers}>
                       {functions => (
                         <ServerEventsContext.Provider value={functions}>
@@ -119,6 +122,64 @@ ReactDOM.render(
                         </ServerEventsContext.Provider>
                       )}
                     </WithServerEvents>
+                    <WithMonacoEditor apiUri={apiUri} headers={headers}>
+                      {functions => (
+                        <MonacoEditorContext.Provider value={functions}>
+                          <App
+                            config={config!}
+                            routes={[
+                              {
+                                component: DashboardModule,
+                                exact: true,
+                                label: 'Home',
+                                to: routes.dashboard.root,
+                              } as IAppRoute,
+                              {
+                                component: IntegrationsModule,
+                                label: 'Integrations',
+                                to: routes.integrations.list,
+                              } as IAppRoute,
+                              {
+                                component: ConnectionsModule,
+                                label: 'Connections',
+                                to: routes.connections.connections,
+                              } as IAppRoute,
+                              {
+                                childrens: [
+                                  {
+                                    component: ApiClientConnectorsModule,
+                                    label: 'API Client Connectors',
+                                    to: routes.apiClientConnectors.list,
+                                  } as IAppRoute,
+                                  {
+                                    component: ExtensionsModule,
+                                    label: 'Extensions',
+                                    to: routes.extensions.list,
+                                  } as IAppRoute,
+                                ],
+                                label: 'Customizations',
+                              } as IAppRouteWithChildrens,
+                              {
+                                component: DataModule,
+                                label: 'Data',
+                                to: routes.data.root,
+                              } as IAppRoute,
+                              {
+                                component: SettingsModule,
+                                label: 'Settings',
+                                to: routes.settings.root,
+                              } as IAppRoute,
+                              {
+                                component: SupportModule,
+                                label: 'Support',
+                                to: routes.support.root,
+                              } as IAppRoute,
+                            ]}
+                          />
+                        </MonacoEditorContext.Provider>
+                      )}
+                    </WithMonacoEditor>
+                    </>
                   )}
                 </ApiContext.Consumer>
               </ApiContext.Provider>
