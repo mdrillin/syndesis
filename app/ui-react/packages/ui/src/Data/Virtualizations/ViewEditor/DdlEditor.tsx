@@ -8,16 +8,18 @@ import {
   CardFooter,
   Grid,
   GridItem,
-  Text,
-  TextContent,
   Title,
 } from '@patternfly/react-core';
+import * as monaco from 'monaco-editor-core';
+import {
+  MonacoServices,
+} from 'monaco-languageclient';
 import * as React from 'react';
+import { useRef } from 'react';
+import MonacoEditor from 'react-monaco-editor';
 import { ConnectionTreeComponent } from '.';
 import { Loader, PageSection } from '../../../Layout';
-import { ITextEditor, TextEditor } from '../../../Shared';
 import './DdlEditor.css';
-import { dvLanguageMode, loadDvMime } from './DvAutocomplete';
 
 export interface IViewEditValidationResult {
   message: string;
@@ -88,6 +90,11 @@ export interface IDdlEditorProps {
   showValidationMessage: boolean;
 
   /**
+   * 
+   */
+  // languageServerUrl: string;
+
+  /**
    * `true` if save is in progress.
    */
   isSaving: boolean;
@@ -141,32 +148,42 @@ const getMetadataTree = (sourceInfo: any): Map<string, any> => {
 
 export const DdlEditor: React.FunctionComponent<IDdlEditorProps> = props => {
   const [ddlValue, setDdlValue] = React.useState(props.viewDdl);
-  const [initialDdlValue] = React.useState(props.viewDdl);
   const [hasChanges, setHasChanges] = React.useState(false);
   const [savedValue, setSavedValue] = React.useState(props.viewDdl);
-  const [keywordsRegistered, setKeywordsRegistered] = React.useState(false);
-  const [cursorPosition, setCursorPosition] = React.useState(
-    `( ${props.i18nCursorLine} ?, ${props.i18nCursorColumn} ? )`
-  );
+  const currentValueGetter = useRef();
+
+  const editorRef = useRef();
+  const LANGUAGE_ID = 'sql'; // 'teiid-ddl';
+
+  const handleEditorDidMount = (valueGetter: any, editor: any) => {
+    editor.codelens = false;
+    currentValueGetter.current = valueGetter;
+    editorRef.current = editor;
+
+    // ***************************************************************************
+    // AFTER the editor is mounted, need to wire the editor to the language server
+    // ***************************************************************************
+
+    // install Monaco language client services
+    MonacoServices.install(editor);
+  }
+
+  /*
+   * When the text editor has been rendered, we need to create the language server connection and wire
+   * it up to a new code mirror adapter
+   */
+  const handleEditorWillMount = () => {
+    monaco.languages.register({
+      extensions: ['.ddl'],
+      id: LANGUAGE_ID,
+    });
+  };
 
   const handleCloseValidationMessage = () => {
     props.onCloseValidationMessage();
   };
 
-  const handleEditorDidMount = (editor: ITextEditor) => {
-    editor.on('cursorActivity', cm => {
-      const pos = editor.getCursor();
-      setCursorPosition(getCursorText(pos));
-    });
-  };
-
-  const getCursorText = (pos: any) => {
-    return `( ${props.i18nCursorLine} ${pos.line + 1}, ${
-      props.i18nCursorColumn
-    } ${pos.ch + 1} )`;
-  };
-
-  const handleDdlChange = (editor: ITextEditor, data: any, value: string) => {
+  const handleEditorChange = (value: any) => {
     setDdlValue(value);
     handleCloseValidationMessage();
 
@@ -191,45 +208,10 @@ export const DdlEditor: React.FunctionComponent<IDdlEditorProps> = props => {
     }
   };
 
-  /**
-   * reformats the tableInfo into the format expected by hintOptions
-   * Example -
-   *   tables: {
-   *     countries: ['name', 'population', 'size'],
-   *     users: ['name', 'score', 'birthDate'],
-   *   }
-   * @param tableInfos the table infos
-   */
-  const getHintOptions = (tableInfos: ITableInfo[]) => {
-    if (!keywordsRegistered) {
-      loadDvMime();
-      setKeywordsRegistered(true);
-    }
-
-    const result = { tables: {} };
-
-    for (const tableInfo of tableInfos) {
-      result.tables[tableInfo.name] = tableInfo.columnNames;
-    }
-    return result;
-  };
-
   const editorOptions = {
-    autoCloseBrackets: true,
-    autofocus: true,
-    extraKeys: { 'Ctrl-Space': 'autocomplete' },
-    gutters: ['CodeMirror-lint-markers'],
-    hintOptions: getHintOptions(props.sourceTableInfos),
-    indentWithTabs: true,
-    lineNumbers: true,
-    lineWrapping: true,
-    matchBrackets: true,
-    mode: dvLanguageMode,
-    placeholder: props.i18nDdlTextPlaceholder,
-    readOnly: false,
-    showCursorWhenSelecting: true,
-    styleActiveLine: true,
-    tabSize: 2,
+    codeLens: false,
+    selectOnLineNumbers: true,
+    useTabStops: true,
   };
 
   const metadataTree = getMetadataTree(props.sourceInfo);
@@ -277,19 +259,19 @@ export const DdlEditor: React.FunctionComponent<IDdlEditorProps> = props => {
                 </Alert>
               ))
             : null}
-          <TextContent>
-            <Text className={'ddl-editor-cursor-position-text'}>
-              {cursorPosition}
-            </Text>
-          </TextContent>
           <Card>
             <CardBody className={'ddl-editor__card-body'}>
-              <TextEditor
-                value={initialDdlValue}
-                options={editorOptions}
-                onChange={handleDdlChange}
-                editorDidMount={handleEditorDidMount}
-              />
+              <MonacoEditor
+              width="100%"
+              height="300"
+              language={LANGUAGE_ID}
+              theme="vs"
+              value={ddlValue}
+              options={editorOptions}
+              onChange={handleEditorChange}
+              editorDidMount={handleEditorDidMount}
+              editorWillMount={handleEditorWillMount}
+            />
             </CardBody>
             <CardFooter className={'ddl-editor__card-footer'}>
               <Button

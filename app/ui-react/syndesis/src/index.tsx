@@ -63,7 +63,7 @@ ReactDOM.render(
                 }}
               >
                 <ApiContext.Consumer>
-                  {({ apiUri, headers }) => (
+                  {({ apiUri, dvApiUri, headers }) => (
                     <>
                     <WithServerEvents apiUri={apiUri} headers={headers}>
                       {functions => (
@@ -122,7 +122,7 @@ ReactDOM.render(
                         </ServerEventsContext.Provider>
                       )}
                     </WithServerEvents>
-                    <WithMonacoEditor apiUri={apiUri} headers={headers}>
+                    <WithMonacoEditor dvApiUri={dvApiUri} headers={headers}>
                       {functions => (
                         <MonacoEditorContext.Provider value={functions}>
                           <App
