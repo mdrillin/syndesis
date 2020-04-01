@@ -1,5 +1,6 @@
 import {
   useViewDefinitionDescriptors,
+  useVirtualizationConnectionSchema,
   useVirtualizationConnectionStatuses,
   useVirtualizationHelpers,
 } from '@syndesis/api';
@@ -50,6 +51,12 @@ export const SelectViewsPage: React.FunctionComponent<
     ISelectViewsRouteState
   >();
   const [saveInProgress, setSaveInProgress] = React.useState(false);
+  const [connectionSchemaLoaded, setConnectionSchemaLoaded] = React.useState(false);
+  const [connectionLoading, setConnectionLoading] = React.useState();
+  const [connectionStatus, setConnectionStatus] = React.useState();
+  const [connectionTeiidName, setConnectionTeiidName] = React.useState();
+  const [connectionLastLoad, setConnectionLastLoad] = React.useState(0);
+  const [existingViewNames, setExistingViewNames] = React.useState<string[]>([]);
   const { pushNotification } = useContext(UIContext);
   const { t } = useTranslation(['data']);
   const { importSource } = useVirtualizationHelpers();
@@ -124,13 +131,37 @@ export const SelectViewsPage: React.FunctionComponent<
   };
 
   const virtualization = state.virtualization;
-  const { resource: viewDefinitionDescriptors } = useViewDefinitionDescriptors(
+  const { 
+    resource: viewDefinitionDescriptors,
+    hasData: hasViewDefinitionDescriptors, 
+  } = useViewDefinitionDescriptors(
     virtualization.name
   );
 
   const {
     resource: connectionStatuses,
+    hasData: hasConnectionStatuses,
   } = useVirtualizationConnectionStatuses();
+
+  const {
+    resource: connectionSchema,
+    hasData: hasConnectionSchema,
+    loading: connectionSchemaLoading,
+    error: connectionSchemaError,
+    read: readConnectionSchema,
+  } = useVirtualizationConnectionSchema(getConnectionTeiidName(state.connectionId, connectionStatuses));
+
+  React.useEffect(() => {
+    if (hasConnectionStatuses && hasViewDefinitionDescriptors) {
+      readConnectionSchema();
+      setConnectionLoading(getConnectionLoading(state.connectionId, connectionStatuses));
+      setConnectionStatus(getConnectionStatus(state.connectionId, connectionStatuses));
+      setConnectionTeiidName(getConnectionTeiidName(state.connectionId, connectionStatuses));
+      setConnectionLastLoad(getConnectionLastLoad(state.connectionId, connectionStatuses));
+      setExistingViewNames(getExistingViewNames(viewDefinitionDescriptors));
+      setConnectionSchemaLoaded(true);
+    }
+  }, [hasConnectionStatuses, hasViewDefinitionDescriptors, connectionStatuses, viewDefinitionDescriptors, readConnectionSchema, state.connectionId]);
 
   const handleCreateViews = async () => {
     setInProgress(true);
@@ -193,13 +224,16 @@ export const SelectViewsPage: React.FunctionComponent<
       }
       content={
         <ViewInfosContent
-          connectionLoading={getConnectionLoading(state.connectionId, connectionStatuses)}
+          connectionLoading={connectionLoading}
           connectionName={state.connectionId}
-          connectionStatus={getConnectionStatus(state.connectionId, connectionStatuses)}
+          connectionSchema={connectionSchema}
+          hasConnectionSchema={!connectionSchemaLoading && connectionSchemaLoaded && hasConnectionSchema}
+          connectionSchemaError={connectionSchemaError}
+          connectionStatus={connectionStatus}
           connectionStatusMessage={''}
-          connectionTeiidName={getConnectionTeiidName(state.connectionId, connectionStatuses)}
-          existingViewNames={getExistingViewNames(viewDefinitionDescriptors)}
-          connectionLastLoad={getConnectionLastLoad(state.connectionId, connectionStatuses)}
+          connectionTeiidName={connectionTeiidName}
+          existingViewNames={existingViewNames}
+          connectionLastLoad={connectionLastLoad}
           onViewSelected={props.handleAddView}
           onViewDeselected={props.handleRemoveView}
           selectedViews={props.selectedViews}

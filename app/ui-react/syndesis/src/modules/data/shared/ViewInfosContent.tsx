@@ -1,4 +1,4 @@
-import { useVirtualizationConnectionSchema, useVirtualizationHelpers } from '@syndesis/api';
+import { useVirtualizationHelpers } from '@syndesis/api';
 import { SchemaNode, ViewInfo } from '@syndesis/models';
 import {
   DvConnectionStatus,
@@ -66,6 +66,9 @@ export interface IViewInfosContentProps {
   connectionStatus: string;
   connectionStatusMessage: string;
   connectionTeiidName: string;
+  connectionSchema: SchemaNode[];
+  hasConnectionSchema: boolean;
+  connectionSchemaError: false | Error;
   existingViewNames: string[];
   connectionLastLoad: number;
   onViewSelected: (view: ViewInfo) => void;
@@ -151,22 +154,15 @@ export const ViewInfosContent: React.FunctionComponent<
     }
   };
 
-  const {
-    resource: schema,
-    hasData: hasSchema,
-    error,
-    read,
-  } = useVirtualizationConnectionSchema(props.connectionTeiidName);
-
   React.useEffect(() => {
     if(props.connectionLastLoad > lastSchemaRefresh) {
-      read();
+      // read();
       setLastSchemaRefresh(props.connectionLastLoad);
       setLastSchemaRefreshMsg(t('schemaLastRefresh', {
         refreshTime: getDateAndTimeDisplay(props.connectionLastLoad),
       }));
     }
-  }, [props.connectionLastLoad, lastSchemaRefresh, read, setLastSchemaRefresh, t]);
+  }, [props.connectionLastLoad, lastSchemaRefresh, setLastSchemaRefresh, t]);
 
   return (
     <WithListViewToolbarHelpers
@@ -175,7 +171,7 @@ export const ViewInfosContent: React.FunctionComponent<
     >
       {helpers => {
         const filteredAndSorted = getFilteredAndSortedViewInfos(
-          schema,
+          props.connectionSchema,
           helpers.activeFilters,
           helpers.currentSortType,
           helpers.isSortAscending,
@@ -214,10 +210,10 @@ export const ViewInfosContent: React.FunctionComponent<
             refreshConnectionSchema={handleRefreshSchema}
           >
             <WithLoader
-              error={error !== false}
-              loading={!hasSchema}
+              error={props.connectionSchemaError !== false}
+              loading={!props.hasConnectionSchema}
               loaderChildren={<ViewInfoListSkeleton width={800} />}
-              errorChildren={<ApiError error={error as Error} />}
+              errorChildren={<ApiError error={props.connectionSchemaError as Error} />}
             >
               {() => (
                 <ViewInfoListItems
