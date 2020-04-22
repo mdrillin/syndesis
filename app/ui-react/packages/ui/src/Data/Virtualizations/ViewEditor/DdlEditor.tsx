@@ -10,18 +10,13 @@ import {
   GridItem,
   Title,
 } from '@patternfly/react-core';
-import * as monaco from 'monaco-editor-core';
-import {
-  CloseAction,
-  createConnection,
-  ErrorAction,
-  MonacoLanguageClient,
-  MonacoServices,
-} from 'monaco-languageclient';
+// import * as monaco from 'monaco-editor-core';
+// import {
+//   MonacoServices,
+// } from 'monaco-languageclient';
 import * as React from 'react';
 import { useRef } from 'react';
 import MonacoEditor from 'react-monaco-editor';
-import { listen, MessageConnection } from 'vscode-ws-jsonrpc';
 import { ConnectionTreeComponent } from '.';
 import { Loader, PageSection } from '../../../Layout';
 import './DdlEditor.css';
@@ -38,16 +33,6 @@ export interface ITableInfo {
 
 export interface IDdlEditorProps {
   viewDdl: string;
-
-  /**
-   * The localized text for the cursor Column.
-   */
-  i18nCursorColumn: string;
-
-  /**
-   * The localized text for the cursor Line.
-   */
-  i18nCursorLine: string;
 
   /**
    * The localized text for the DDL text placeholder when no content exists.
@@ -95,11 +80,6 @@ export interface IDdlEditorProps {
   showValidationMessage: boolean;
 
   /**
-   *
-   */
-  languageServerUrl: string;
-
-  /**
    * `true` if save is in progress.
    */
   isSaving: boolean;
@@ -130,6 +110,16 @@ export interface IDdlEditorProps {
   onFinish: () => void;
 
   /**
+   * The callback for monaco editor will mount
+   */
+  registerLanguages: () => void;
+
+  /**
+   * The callback for monaco editor install
+   */
+  onInstallEditor: (editor: any) => void;
+
+  /**
    * The callback for when the save button is clicked
    * @param ddl the text area ddl
    * @returns `true` if saving the DDL was successful
@@ -158,88 +148,30 @@ export const DdlEditor: React.FunctionComponent<IDdlEditorProps> = props => {
   const currentValueGetter = useRef();
 
   const editorRef = useRef();
-  const LANGUAGE_ID = 'sql';
-  let webSocket: WebSocket;
+  const LANGUAGE_ID = 'sql'; // 'teiid-ddl';
 
-  /*
-   * When the text editor has been rendered, we need to create the language server connection and wire
-   * it up to a new code mirror adapter
-   */
   const handleEditorDidMount = (valueGetter: any, editor: any) => {
     editor.codelens = false;
     currentValueGetter.current = valueGetter;
     editorRef.current = editor;
 
-    // ***************************************************************************
-    // AFTER the editor is mounted, need to wire the editor to the language server
-    // ***************************************************************************
-
-    MonacoServices.install(editor);
-
-    // create the web socket
-    // Eclipse launched test web service:  'ws://localhost:8025/teiid-ddl-language-server';
-    // Target URL should look like this:  'wss://syndesis-syndesis.nip.io.192.168.42.99.nip.io/dv/teiid-ddl-language-server';
-    let url: string;
-
-    if (props.languageServerUrl.indexOf('https://') > -1) {
-      url = props.languageServerUrl
-        .replace('https://', 'wss://')
-        .replace('/v1', '');
-    } else {
-      url = props.languageServerUrl
-        .replace('http://', 'ws://')
-        .replace('/v1', '');
-    }
-    // const url = 'ws://localhost:8025/teiid-ddl-language-server';
-
-    webSocket = new WebSocket(url, []);
-
-    // listen when the web socket is opened
-    listen({
-      webSocket,
-      // tslint:disable-next-line:object-literal-sort-keys
-      onConnection: connection => {
-        // create and start the language client
-        const languageClient = createLanguageClient(connection);
-        const disposable = languageClient.start();
-        connection.onClose(() => disposable.dispose());
-      },
-    });
-  };
+    // install Monaco language client services
+    // MonacoServices.install(editor);
+    // tslint:disable-next-line:no-console
+    console.log(" >>> DdlEditor.handleEditorDidMount() calling onInstallEditor(editor)");
+    // tslint:disable-next-line:no-unused-expression
+    props.onInstallEditor && props.onInstallEditor(editor);
+  }
 
   /*
    * When the text editor has been rendered, we need to create the language server connection and wire
-   * it up to a new code mirror adapter
+   * it up to a new code mirror adapter through the WithLanguageServiceClient
    */
   const handleEditorWillMount = () => {
-    monaco.languages.register({
-      extensions: ['.ddl'],
-      id: LANGUAGE_ID,
-    });
-  };
-
-  const createLanguageClient = (connection: MessageConnection) => {
-    return new MonacoLanguageClient({
-      name: 'Sample Language Client',
-      // tslint:disable-next-line:object-literal-sort-keys
-      clientOptions: {
-        // use a language id as a document selector
-        documentSelector: [LANGUAGE_ID],
-        // disable the default error handler
-        errorHandler: {
-          closed: () => CloseAction.DoNotRestart,
-          error: () => ErrorAction.Continue,
-        },
-      },
-      // create a language client connection from the JSON RPC connection on demand
-      connectionProvider: {
-        get: (errorHandler, closeHandler) => {
-          return Promise.resolve(
-            createConnection(connection, errorHandler, closeHandler)
-          );
-        },
-      },
-    });
+    // tslint:disable-next-line:no-console
+    console.log(" >>> DdlEditor.handleEditorWillMount()  props = ", props);
+    // tslint:disable-next-line:no-unused-expression
+    props.registerLanguages && props.registerLanguages();
   };
 
   const handleCloseValidationMessage = () => {
@@ -262,12 +194,6 @@ export const DdlEditor: React.FunctionComponent<IDdlEditorProps> = props => {
     props.onFinish();
   };
 
-  React.useEffect(() => {
-    return () => {
-      webSocket.close();
-    };
-  }, []);
-
   const handleSave = async () => {
     const saved = await props.onSave(ddlValue);
     if (saved) {
@@ -288,17 +214,17 @@ export const DdlEditor: React.FunctionComponent<IDdlEditorProps> = props => {
   return (
     <Grid style={{ flexGrow: 1 }}>
       <GridItem span={3}>
-        <PageSection isFilled={true} variant={'light'} className={'ddl-editor'}>
+        <PageSection
+          isFilled={true}
+          variant={'light'}
+          className={'ddl-editor'}
+        >
           <Title headingLevel="h5" size="lg">
             {props.i18nMetadataTitle}
           </Title>
-          <div
-            className={
-              props.previewExpanded
-                ? 'ddl-editor_metatree_table ddl-editor_metatree_table_scroll'
-                : 'ddl-editor_metatree_table'
-            }
-          >
+          <div className={props.previewExpanded
+              ? 'ddl-editor_metatree_table ddl-editor_metatree_table_scroll'
+              : 'ddl-editor_metatree_table'}>
             <ConnectionTreeComponent
               metadataTree={metadataTree}
               i18nLoading={props.i18nLoading}
@@ -331,16 +257,16 @@ export const DdlEditor: React.FunctionComponent<IDdlEditorProps> = props => {
           <Card>
             <CardBody className={'ddl-editor__card-body'}>
               <MonacoEditor
-                width="100%"
-                height="300"
-                language={LANGUAGE_ID}
-                theme="vs"
-                value={ddlValue}
-                options={editorOptions}
-                onChange={handleEditorChange}
-                editorDidMount={handleEditorDidMount}
-                editorWillMount={handleEditorWillMount}
-              />
+              width="100%"
+              height="300"
+              language={LANGUAGE_ID}
+              theme="vs"
+              value={ddlValue}
+              options={editorOptions}
+              onChange={handleEditorChange}
+              editorDidMount={handleEditorDidMount}
+              editorWillMount={handleEditorWillMount}
+            />
             </CardBody>
             <CardFooter className={'ddl-editor__card-footer'}>
               <Button
