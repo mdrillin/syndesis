@@ -58,12 +58,17 @@
     "@syndesis/utils": "*",
     "deepmerge": "^4.2.2",
     "file-saver": "^2.0.1",
+<<<<<<< HEAD
     "immer": "^5.0.0",
     "monaco-editor-core": "^0.19.3",
     "monaco-languageclient": "^0.10.2",
     "react-monaco-editor": "^0.33.0",
     "react-fast-compare": "^2.0.2",
     "vscode-ws-jsonrpc": "^0.1.1"
+=======
+    "immer": "^6.0.3",
+    "react-fast-compare": "^2.0.2"
+>>>>>>> parent of ab4f299e0b... TTOOLS-959 Fix Monaco leak issue
   },
   "jest": {
     "setupFilesAfterEnv": [
