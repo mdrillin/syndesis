@@ -80,6 +80,11 @@ export interface IDdlEditorProps {
   showValidationMessage: boolean;
 
   /**
+   *
+   */
+  languageServerUrl: string;
+
+  /**
    * `true` if save is in progress.
    */
   isSaving: boolean;
@@ -194,6 +199,12 @@ export const DdlEditor: React.FunctionComponent<IDdlEditorProps> = props => {
     props.onFinish();
   };
 
+  React.useEffect(() => {
+    return () => {
+      webSocket.close();
+    };
+  }, []);
+
   const handleSave = async () => {
     const saved = await props.onSave(ddlValue);
     if (saved) {
@@ -214,17 +225,17 @@ export const DdlEditor: React.FunctionComponent<IDdlEditorProps> = props => {
   return (
     <Grid style={{ flexGrow: 1 }}>
       <GridItem span={3}>
-        <PageSection
-          isFilled={true}
-          variant={'light'}
-          className={'ddl-editor'}
-        >
+        <PageSection isFilled={true} variant={'light'} className={'ddl-editor'}>
           <Title headingLevel="h5" size="lg">
             {props.i18nMetadataTitle}
           </Title>
-          <div className={props.previewExpanded
-              ? 'ddl-editor_metatree_table ddl-editor_metatree_table_scroll'
-              : 'ddl-editor_metatree_table'}>
+          <div
+            className={
+              props.previewExpanded
+                ? 'ddl-editor_metatree_table ddl-editor_metatree_table_scroll'
+                : 'ddl-editor_metatree_table'
+            }
+          >
             <ConnectionTreeComponent
               metadataTree={metadataTree}
               i18nLoading={props.i18nLoading}

@@ -68,6 +68,4 @@ export { useApiConnectorCreator } from './useApiConnectorCreator';
 export { ICreateConnectorProps } from './useApiConnectorCreator';
 export { useApiProviderSpecification } from './useApiProviderSpecification';
 export { useApiProviderIntegration } from './useApiProviderIntegration';
-export {
-  useConnectorCredentialsConnect,
-} from './useConnectorCredentialsConnect';
+export { useConnectorCredentialsConnect } from './useConnectorCredentialsConnect';
