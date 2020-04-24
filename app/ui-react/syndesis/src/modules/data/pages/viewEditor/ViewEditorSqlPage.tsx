@@ -1,5 +1,5 @@
 import {
-  LanguageServiceClientContext,
+  ApiContext,
   useViewDefinition,
   useVirtualization,
   useVirtualizationHelpers,
@@ -275,9 +275,7 @@ export const ViewEditorSqlPage: React.FunctionComponent = () => {
           setSourceTableColumns(
             generateTableColumns(results as ViewSourceInfo)
           );
-          if (sourceInfo.length === 0) {
-            setSourceInfo(results.schemas);
-          }
+          setSourceInfo(results.schemas);
         } catch (error) {
           pushNotification(error.message, 'error');
         }
@@ -335,10 +333,12 @@ export const ViewEditorSqlPage: React.FunctionComponent = () => {
                 </Link>
                 <span>{t('viewNameBreadcrumb', { name: viewDefn.name })}</span>
               </Breadcrumb>
-              <LanguageServiceClientContext.Consumer>
-                {(functionHelper) => (
+              <ApiContext.Consumer>
+                {({ dvApiUri, headers }) => (
                   <DdlEditor
                     viewDdl={viewDefn.ddl ? viewDefn.ddl : ''}
+                    i18nCursorColumn={t('cursorColumn')}
+                    i18nCursorLine={t('cursorLine')}
                     i18nDdlTextPlaceholder={t('ddlTextPlaceholder')}
                     i18nDoneLabel={t('shared:Done')}
                     i18nSaveLabel={t('shared:Save')}
@@ -346,21 +346,20 @@ export const ViewEditorSqlPage: React.FunctionComponent = () => {
                     i18nMetadataTitle={t('metadataTree')}
                     i18nLoading={t('shared:Loading')}
                     previewExpanded={previewExpanded}
+                    languageServerUrl={`${dvApiUri}teiid-ddl-language-server`}
                     i18nValidationResultsTitle={validationResultsTitle}
                     showValidationMessage={validationMessageVisible}
                     isSaving={isSaving}
                     sourceTableInfos={sourceTableColumns}
                     sourceInfo={sourceInfo}
                     onCloseValidationMessage={handleHideValidationMessage}
-                    registerLanguages={functionHelper.registerLanguages}
                     onFinish={handleEditFinished}
-                    onInstallEditor={functionHelper.installEditor}
                     onSave={handleSaveView}
                     setDirty={handleDirtyStateChanged}
                     validationResults={validationResults}
                   />
                 )}
-              </LanguageServiceClientContext.Consumer>
+              </ApiContext.Consumer>
               <ExpandablePreview
                 i18nEmptyResultsTitle={noResultsTitle}
                 i18nEmptyResultsMsg={noResultsMessage}
